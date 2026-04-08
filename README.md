@@ -1,1 +1,190 @@
-# Proyecto-Agro1
+# Proyecto-Agro1[index.html](https://github.com/user-attachments/files/26578003/index.html)
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartPlant 🌱</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body { background:#1a2e1a; color:#a8e6a0; font-family:Arial; text-align:center; }
+.card { background:#223b22; margin:10px; padding:15px; border-radius:10px; }
+button { background:#4caf50; color:white; padding:10px; border-radius:5px; border:none; margin:5px; }
+input { margin:5px; padding:8px; border-radius:5px; width:90%; }
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <h1>🌱 SmartPlant</h1>
+  <h2>Iniciar sesión</h2>
+
+  <input id="user" placeholder="Usuario"><br>
+  <input id="pass" type="password" placeholder="Contraseña"><br>
+
+  <button onclick="login()">Ingresar</button>
+  <button onclick="register()">Registrarse</button>
+
+  <p id="msg"></p>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+
+  <h1>🌱 SmartPlant</h1>
+  <p id="welcome"></p>
+
+  <button onclick="logout()">Cerrar sesión</button>
+
+  <hr>
+
+  <form onsubmit="addPlant(event)">
+    <input id="name" placeholder="Nombre planta" required><br>
+    <input id="date" type="date" required><br>
+    <input id="location" placeholder="Ubicación"><br>
+    <button type="submit">Agregar</button>
+  </form>
+
+  <div id="list"></div>
+
+</div>
+
+<script>
+
+// USUARIO ACTUAL
+let currentUser = localStorage.getItem("currentUser");
+
+// MOSTRAR APP SI YA ESTÁ LOGUEADO
+if (currentUser) {
+  showApp();
+}
+
+// REGISTRARSE
+function register() {
+  const user = document.getElementById("user").value;
+  const pass = document.getElementById("pass").value;
+
+  if (!user || !pass) return alert("Completá todo");
+
+  let users = JSON.parse(localStorage.getItem("users")) || {};
+
+  if (users[user]) {
+    document.getElementById("msg").innerText = "Usuario ya existe";
+    return;
+  }
+
+  users[user] = pass;
+  localStorage.setItem("users", JSON.stringify(users));
+
+  document.getElementById("msg").innerText = "Registrado con éxito";
+}
+
+// LOGIN
+function login() {
+  const user = document.getElementById("user").value;
+  const pass = document.getElementById("pass").value;
+
+  let users = JSON.parse(localStorage.getItem("users")) || {};
+
+  if (users[user] === pass) {
+    localStorage.setItem("currentUser", user);
+    currentUser = user;
+    showApp();
+  } else {
+    document.getElementById("msg").innerText = "Datos incorrectos";
+  }
+}
+
+// MOSTRAR APP
+function showApp() {
+  document.getElementById("login").style.display = "none";
+  document.getElementById("app").style.display = "block";
+  document.getElementById("welcome").innerText = "Hola " + currentUser;
+
+  loadPlants();
+}
+
+// LOGOUT
+function logout() {
+  localStorage.removeItem("currentUser");
+  location.reload();
+}
+
+// PLANTAS
+let plants = [];
+
+// CARGAR
+function loadPlants() {
+  plants = JSON.parse(localStorage.getItem("plants_" + currentUser)) || [];
+  render();
+}
+
+// GUARDAR
+function save() {
+  localStorage.setItem("plants_" + currentUser, JSON.stringify(plants));
+}
+
+// AGREGAR
+function addPlant(e) {
+  e.preventDefault();
+
+  const plant = {
+    id: Date.now(),
+    name: document.getElementById("name").value,
+    date: document.getElementById("date").value,
+    location: document.getElementById("location").value,
+    watered: false
+  };
+
+  plants.push(plant);
+  save();
+  render();
+
+  e.target.reset();
+}
+
+// MOSTRAR
+function render() {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  plants.forEach(p => {
+    list.innerHTML += `
+      <div class="card">
+        <h3>${p.name}</h3>
+        <p>📅 ${p.date}</p>
+        <p>📍 ${p.location}</p>
+        <p>${p.watered ? "💧 Regada" : "🏜️ Sin regar"}</p>
+
+        <button onclick="toggle(${p.id})">Regar</button>
+        <button onclick="deletePlant(${p.id})">Eliminar</button>
+      </div>
+    `;
+  });
+}
+
+// REGAR
+function toggle(id) {
+  plants = plants.map(p => {
+    if (p.id === id) p.watered = !p.watered;
+    return p;
+  });
+  save();
+  render();
+}
+
+// ELIMINAR
+function deletePlant(id) {
+  plants = plants.filter(p => p.id !== id);
+  save();
+  render();
+}
+
+</script>
+
+</body>
+</html>
