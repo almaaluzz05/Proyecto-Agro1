@@ -1,189 +1,201 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SmartPlant 🌱</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-<style>
-body { background:#1a2e1a; color:#a8e6a0; font-family:Arial; text-align:center; }
-.card { background:#223b22; margin:10px; padding:15px; border-radius:10px; }
-button { background:#4caf50; color:white; padding:10px; border-radius:5px; border:none; margin:5px; }
-input { margin:5px; padding:8px; border-radius:5px; width:90%; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgroPlant</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet" />
 </head>
-
 <body>
 
-<!-- LOGIN -->
-<div id="login">
-  <h1>🌱 SmartPlant</h1>
-  <h2>Iniciar sesión</h2>
+  <!-- ═══════════════════════════════
+       NAVBAR INFERIOR (navegación)
+  ═══════════════════════════════ -->
+  <nav class="navbar">
+    <button class="nav-btn active" onclick="irA('inicio')" id="nav-inicio">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Inicio</span>
+    </button>
+    <button class="nav-btn" onclick="irA('buscar')" id="nav-buscar">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>Buscar</span>
+    </button>
+    <button class="nav-btn" onclick="irA('favoritas')" id="nav-favoritas">
+      <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <span>Favoritas</span>
+    </button>
+    <button class="nav-btn" onclick="irA('mis-plantas')" id="nav-mis-plantas">
+      <svg viewBox="0 0 24 24"><path d="M12 22V12"/><path d="M12 12C12 12 7 9 7 5a5 5 0 0 1 10 0c0 4-5 7-5 7z"/><path d="M12 12c0 0-5 3-5 7"/><path d="M12 12c0 0 5 3 5 7"/></svg>
+      <span>Mis plantas</span>
+    </button>
+    <button class="nav-btn" onclick="irA('recordatorios')" id="nav-recordatorios">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span>Alertas</span>
+    </button>
+  </nav>
 
-  <input id="user" placeholder="Usuario"><br>
-  <input id="pass" type="password" placeholder="Contraseña"><br>
-
-  <button onclick="login()">Ingresar</button>
-  <button onclick="register()">Registrarse</button>
-
-  <p id="msg"></p>
-</div>
-
-<!-- APP -->
-<div id="app" style="display:none">
-
-  <h1>🌱 SmartPlant</h1>
-  <p id="welcome"></p>
-
-  <button onclick="logout()">Cerrar sesión</button>
-
-  <hr>
-
-  <form onsubmit="addPlant(event)">
-    <input id="name" placeholder="Nombre planta" required><br>
-    <input id="date" type="date" required><br>
-    <input id="location" placeholder="Ubicación"><br>
-    <button type="submit">Agregar</button>
-  </form>
-
-  <div id="list"></div>
-
-</div>
-
-<script>
-
-// USUARIO ACTUAL
-let currentUser = localStorage.getItem("currentUser");
-
-// MOSTRAR APP SI YA ESTÁ LOGUEADO
-if (currentUser) {
-  showApp();
-}
-
-// REGISTRARSE
-function register() {
-  const user = document.getElementById("user").value;
-  const pass = document.getElementById("pass").value;
-
-  if (!user || !pass) return alert("Completá todo");
-
-  let users = JSON.parse(localStorage.getItem("users")) || {};
-
-  if (users[user]) {
-    document.getElementById("msg").innerText = "Usuario ya existe";
-    return;
-  }
-
-  users[user] = pass;
-  localStorage.setItem("users", JSON.stringify(users));
-
-  document.getElementById("msg").innerText = "Registrado con éxito";
-}
-
-// LOGIN
-function login() {
-  const user = document.getElementById("user").value;
-  const pass = document.getElementById("pass").value;
-
-  let users = JSON.parse(localStorage.getItem("users")) || {};
-
-  if (users[user] === pass) {
-    localStorage.setItem("currentUser", user);
-    currentUser = user;
-    showApp();
-  } else {
-    document.getElementById("msg").innerText = "Datos incorrectos";
-  }
-}
-
-// MOSTRAR APP
-function showApp() {
-  document.getElementById("login").style.display = "none";
-  document.getElementById("app").style.display = "block";
-  document.getElementById("welcome").innerText = "Hola " + currentUser;
-
-  loadPlants();
-}
-
-// LOGOUT
-function logout() {
-  localStorage.removeItem("currentUser");
-  location.reload();
-}
-
-// PLANTAS
-let plants = [];
-
-// CARGAR
-function loadPlants() {
-  plants = JSON.parse(localStorage.getItem("plants_" + currentUser)) || [];
-  render();
-}
-
-// GUARDAR
-function save() {
-  localStorage.setItem("plants_" + currentUser, JSON.stringify(plants));
-}
-
-// AGREGAR
-function addPlant(e) {
-  e.preventDefault();
-
-  const plant = {
-    id: Date.now(),
-    name: document.getElementById("name").value,
-    date: document.getElementById("date").value,
-    location: document.getElementById("location").value,
-    watered: false
-  };
-
-  plants.push(plant);
-  save();
-  render();
-
-  e.target.reset();
-}
-
-// MOSTRAR
-function render() {
-  const list = document.getElementById("list");
-  list.innerHTML = "";
-
-  plants.forEach(p => {
-    list.innerHTML += `
-      <div class="card">
-        <h3>${p.name}</h3>
-        <p>📅 ${p.date}</p>
-        <p>📍 ${p.location}</p>
-        <p>${p.watered ? "💧 Regada" : "🏜️ Sin regar"}</p>
-
-        <button onclick="toggle(${p.id})">Regar</button>
-        <button onclick="deletePlant(${p.id})">Eliminar</button>
+  <!-- ═══════════════════════════════
+       PANTALLA: INICIO
+  ═══════════════════════════════ -->
+  <div id="pantalla-inicio" class="pantalla activa">
+    <div class="inicio-hero">
+      <div class="hero-deco"></div>
+      <div class="hero-content">
+        <p class="hero-saludo" id="saludo-hora">Buenos días</p>
+        <h1 class="hero-titulo">AgroPlant</h1>
+        <p class="hero-sub">Tu compañero de las plantas</p>
       </div>
-    `;
-  });
-}
+    </div>
 
-// REGAR
-function toggle(id) {
-  plants = plants.map(p => {
-    if (p.id === id) p.watered = !p.watered;
-    return p;
-  });
-  save();
-  render();
-}
+    <div class="seccion-padding">
 
-// ELIMINAR
-function deletePlant(id) {
-  plants = plants.filter(p => p.id !== id);
-  save();
-  render();
-}
+      <!-- Estadísticas rápidas -->
+      <div class="stats-row" id="stats-row"></div>
 
-</script>
+      <!-- Próximos riegos -->
+      <div class="seccion-titulo">Próximos riegos</div>
+      <div id="proximos-riegos" class="lista-riegos"></div>
 
+      <!-- Plantas destacadas -->
+      <div class="seccion-titulo" style="margin-top:1.5rem">Plantas destacadas</div>
+      <div id="plantas-destacadas" class="grid-plantas"></div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       PANTALLA: BUSCAR
+  ═══════════════════════════════ -->
+  <div id="pantalla-buscar" class="pantalla">
+    <div class="topbar-simple">
+      <h2>Buscar plantas</h2>
+    </div>
+    <div class="seccion-padding">
+      <div class="buscador-wrap">
+        <svg class="buscador-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="input-buscar" class="buscador-input" placeholder="Ej: tomate, potus, helecho..." oninput="buscarPlantas()" />
+        <button class="buscador-clear" id="btn-clear-buscar" onclick="limpiarBusqueda()" style="display:none">✕</button>
+      </div>
+
+      <div class="filtros-row">
+        <button class="filtro-btn activo" onclick="filtrarCategoria('todas', this)">Todas</button>
+        <button class="filtro-btn" onclick="filtrarCategoria('interior', this)">Interior</button>
+        <button class="filtro-btn" onclick="filtrarCategoria('huerta', this)">Huerta</button>
+        <button class="filtro-btn" onclick="filtrarCategoria('suculenta', this)">Suculentas</button>
+        <button class="filtro-btn" onclick="filtrarCategoria('flores', this)">Flores</button>
+        <button class="filtro-btn" onclick="filtrarCategoria('cactus', this)">Cactus</button>
+        <button class="filtro-btn" onclick="filtrarCategoria('árboles', this)">Árboles</button>
+        <button class="filtro-btn" onclick="filtrarCategoria('Aromáticas', this)">Aromáticas</button>
+      </div>
+
+      <div id="resultados-buscar" class="grid-plantas"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       PANTALLA: FAVORITAS
+  ═══════════════════════════════ -->
+  <div id="pantalla-favoritas" class="pantalla">
+    <div class="topbar-simple">
+      <h2>Mis favoritas</h2>
+    </div>
+    <div class="seccion-padding">
+      <div id="lista-favoritas" class="grid-plantas"></div>
+      <div id="favoritas-vacio" class="estado-vacio hidden">
+        <div class="vacio-emoji">🌱</div>
+        <p>Todavía no tenés favoritas</p>
+        <button class="btn-accion" onclick="irA('buscar')">Explorar plantas</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       PANTALLA: MIS PLANTAS
+  ═══════════════════════════════ -->
+  <div id="pantalla-mis-plantas" class="pantalla">
+    <div class="topbar-simple">
+      <h2>Mis plantas</h2>
+      <button class="btn-topbar-add" onclick="abrirModalAgregarPlanta()">+ Agregar</button>
+    </div>
+    <div class="seccion-padding">
+      <div id="lista-mis-plantas" class="lista-mis-plantas"></div>
+      <div id="mis-plantas-vacio" class="estado-vacio hidden">
+        <div class="vacio-emoji">🪴</div>
+        <p>Agregá tu primera planta para hacer seguimiento</p>
+        <button class="btn-accion" onclick="abrirModalAgregarPlanta()">Agregar planta</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       PANTALLA: RECORDATORIOS
+  ═══════════════════════════════ -->
+  <div id="pantalla-recordatorios" class="pantalla">
+    <div class="topbar-simple">
+      <h2>Alertas de riego</h2>
+    </div>
+    <div class="seccion-padding">
+      <div id="lista-recordatorios" class="lista-recordatorios"></div>
+      <div id="recordatorios-vacio" class="estado-vacio hidden">
+        <div class="vacio-emoji">🔔</div>
+        <p>No hay alertas pendientes</p>
+        <p style="font-size:13px;color:var(--texto-suave);margin-top:4px">Agregá plantas propias para recibir alertas</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       MODAL: DETALLE DE PLANTA
+  ═══════════════════════════════ -->
+  <div id="modal-planta" class="modal-overlay hidden" onclick="cerrarModal('modal-planta')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <button class="modal-cerrar" onclick="cerrarModal('modal-planta')">✕</button>
+      <div id="modal-planta-contenido"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       MODAL: AGREGAR MI PLANTA
+  ═══════════════════════════════ -->
+  <div id="modal-agregar" class="modal-overlay hidden" onclick="cerrarModal('modal-agregar')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <button class="modal-cerrar" onclick="cerrarModal('modal-agregar')">✕</button>
+      <h3 class="modal-titulo">Agregar mi planta</h3>
+
+      <label class="form-label">¿Qué planta es?</label>
+      <select id="select-planta" class="form-select"></select>
+
+      <label class="form-label">Nombre personalizado</label>
+      <input type="text" id="input-nombre-planta" class="form-input" placeholder="Ej: El potus de la cocina..." maxlength="40" />
+
+      <label class="form-label">Fecha del último riego</label>
+      <input type="date" id="input-ultimo-riego" class="form-input" />
+
+      <label class="form-label">Notas</label>
+      <textarea id="input-notas" class="form-textarea" placeholder="Observaciones, estado, dónde está ubicada..." rows="3"></textarea>
+
+      <button class="btn-accion full" onclick="guardarMiPlanta()">Guardar planta</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       MODAL: REGISTRAR RIEGO
+  ═══════════════════════════════ -->
+  <div id="modal-riego" class="modal-overlay hidden" onclick="cerrarModal('modal-riego')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <button class="modal-cerrar" onclick="cerrarModal('modal-riego')">✕</button>
+      <h3 class="modal-titulo">Registrar riego</h3>
+      <p id="modal-riego-nombre" style="color:var(--verde-medio);font-size:15px;margin-bottom:1rem;"></p>
+      <label class="form-label">Fecha del riego</label>
+      <input type="date" id="input-fecha-riego" class="form-input" />
+      <label class="form-label">Notas del riego (opcional)</label>
+      <input type="text" id="input-nota-riego" class="form-input" placeholder="Ej: La tierra estaba muy seca..." />
+      <button class="btn-accion full" onclick="confirmarRiego()">✓ Confirmar riego</button>
+    </div>
+  </div>
+
+  <script src="datos.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
